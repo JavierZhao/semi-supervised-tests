@@ -1,3 +1,11 @@
+# To plot pretty figures
+%matplotlib inline
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+mpl.rc('axes', labelsize=14)
+mpl.rc('xtick', labelsize=12)
+mpl.rc('ytick', labelsize=12)
+
 def calculate_tpr_fpr(y_real, y_pred):
     '''
     Calculates the True Positive Rate (tpr) and the True Negative Rate (fpr) based on real and predicted observations
@@ -81,13 +89,6 @@ def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(1
         labels: The list of labels.
         predictions: The list of predicted classes. First dimension should match with the dimension of labels
     '''
-    # To plot pretty figures
-    %matplotlib inline
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-    mpl.rc('axes', labelsize=14)
-    mpl.rc('xtick', labelsize=12)
-    mpl.rc('ytick', labelsize=12)
     assert labels.size() == predictions[:, 0].size()
     if predictions.type() == 'torch.cuda.FloatTensor':
         predictions = predictions.cpu()
