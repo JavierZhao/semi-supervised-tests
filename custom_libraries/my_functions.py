@@ -67,6 +67,8 @@ def plot_roc_curve(tpr, fpr, scatter = True, ax = None):
         fpr: The list of FPRs representing each coordinate.
         scatter: When True, the points used on the calculation will be plotted with the line (default = True).
     '''
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
     if ax == None:
         plt.figure(figsize = (5, 5))
         ax = plt.axes()
@@ -89,6 +91,9 @@ def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(1
         labels: The list of labels.
         predictions: The list of predicted classes. First dimension should match with the dimension of labels
     '''
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    
     assert labels.size() == predictions[:, 0].size()
     if predictions.type() == 'torch.cuda.FloatTensor':
         predictions = predictions.cpu()
