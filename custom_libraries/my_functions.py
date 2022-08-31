@@ -106,7 +106,7 @@ def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(9
         predictions = predictions.cpu()
         
     if ax == None:
-        fig, ax = plt.subplots(figsize=(9, 9))
+        fig, ax = plt.subplots(figsize=figsize)
     
     roc_auc_ovr = {}
     for i in range(len(classes)):
@@ -150,9 +150,12 @@ def plot_class_balance(classes, labels):
         d[data] += 1
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.bar(list(d.keys()), list(d.values()))
+    ax.set_xlabel("Classes")
+    ax.set_ylabel("Number of data points")
+    plt.show()
     return d
 
-def plot_class_balance_and_accuracy(class_dict, classes, labels, predictions, width=0.8):
+def plot_class_balance_and_accuracy(class_dict, labels, predictions, width=0.8):
     '''
     Plots two bar graphs:
         a bar graph of accuracy for each class
@@ -160,11 +163,11 @@ def plot_class_balance_and_accuracy(class_dict, classes, labels, predictions, wi
     
     Args:
         class_dict: dictionary of number of data points for each class. Can be obtained by calling plot_class_balance
-        classes: list of classes. Accepted datatypes: numpy list, python list
         labels: list of labels. Accepted datatypes: numpy list, python list
         predictions: The list of predicted classes.
         width: width of the bars. Default = 0.8
     '''
+    classes = list(class_dict.keys())
     # calcualte the accuracy for each class
     dict = {i: [0, 0] for i in classes}
     for i in range(predictions.size()[0]):
@@ -191,4 +194,34 @@ def plot_class_balance_and_accuracy(class_dict, classes, labels, predictions, wi
     width = width
     _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0)
     ax.set_xlabel('Classes')
+    plt.show()
+
+def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, figsize=(12, 6), width=0.8):
+    '''
+    Plots two bar graphs:
+        a bar graph of AUC for each class
+        a bar graph of the # of data points AND the AUC for each class
+    
+    Args:
+        class_dict: dictionary of number of data points for each class. Can be obtained by calling plot_overlayed_roc_curve
+        roc_auc_ovr: dictionary of AUC for each class.
+        width: width of the bars. Default = 0.8
+    '''
+    classes = list(class_dict.keys())
+    
+    # plot the AUC for each class
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.bar(list(roc_auc_ovr.keys()), list(roc_auc_ovr.values()), color='b')
+    ax.set_xlabel("Classes")
+    ax.set_ylabel("AUC")
+    plt.show()
+    
+    # plot the class balance AND AUC for each class
+    data_tuples = list(zip(list(class_dict.values()), list(roc_auc_ovr.values())))
+    df = pd.DataFrame(data_tuples, columns=["# of data points", "ROC_AUC"])
+    fig = plt.figure(figsize=(12, 6)) # Create matplotlib figure
+    ax = fig.add_subplot(111) # Create matplotlib axes
+    width = width
+    _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0)
+    ax.set_xlabel('classes')
     plt.show()
