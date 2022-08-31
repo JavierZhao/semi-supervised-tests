@@ -90,28 +90,35 @@ def plot_roc_curve(tpr, fpr, scatter = True, ax = None):
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     
-def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(12, 6), ncol=2):
+def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(9, 9), ncol=2):
     '''
-    Plots overlayed ROC curves.
+    Plots overlayed ROC curves and returns a list of AUC.
     
     Args:
         classes: The classes used in classification
         labels: The list of labels.
         predictions: The list of predicted classes. First dimension should match with the dimension of labels
+    Return:
+        roc_auc_ovr: Dictionary of AUC, one for each class
     '''
     assert labels.size() == predictions[:, 0].size()
     if predictions.type() == 'torch.cuda.FloatTensor':
         predictions = predictions.cpu()
         
     if ax == None:
-        fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(9, 9))
     
+    roc_auc_ovr = {}
     for i in range(len(classes)):
         c = classes[i]
         y_real = [1 if y == c else 0 for y in labels]
         y_proba = predictions[:, i]
         tpr, fpr = get_all_roc_coordinates(y_real, y_proba)
         ax.plot(fpr, tpr, label = c)
+        
+        # Calculates the ROC AUC
+        roc_auc_ovr[c] = roc_auc_score(y_real, y_proba.detach())
+        print(roc_auc_ovr[c])
 
     x = np.linspace(0, 1, 10)
     Y = x
@@ -122,4 +129,66 @@ def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(1
     plt.ylabel("True Positive Rate")
     ax.legend(loc='best', bbox_to_anchor=(0.5, -0.20), shadow=False, ncol=ncol)
     plt.title("ROC Curve OvR")
+    plt.show()
+    
+    return roc_auc_ovr
+
+def plot_class_balance(classes, labels):
+    '''
+    Plots a bar graph of # of data points for each class
+    
+    Args:
+        classes: list of classes. Accepted datatypes: numpy list, python list
+        labels: list of labels. Accepted datatypes: numpy list, python list
+    Return:
+        d: dictionary of number of data points for each class
+    '''
+    # initialize dictionary
+    d = {i: 0 for i in classes}
+
+    for data in labels:
+        d[data] += 1
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(list(d.keys()), list(d.values()))
+    return d
+
+def plot_class_balance_and_accuracy(class_dict, classes, labels, predictions, width=0.8):
+    '''
+    Plots two bar graphs:
+        a bar graph of accuracy for each class
+        a bar graph of the # of data points AND the accuracy for each class
+    
+    Args:
+        class_dict: dictionary of number of data points for each class. Can be obtained by calling plot_class_balance
+        classes: list of classes. Accepted datatypes: numpy list, python list
+        labels: list of labels. Accepted datatypes: numpy list, python list
+        predictions: The list of predicted classes.
+        width: width of the bars. Default = 0.8
+    '''
+    # calcualte the accuracy for each class
+    dict = {i: [0, 0] for i in classes}
+    for i in range(predictions.size()[0]):
+        c = labels[i] # the true class
+        dict[c][0] += 1 # the first element is the number of data points
+        if c == pred[i]:
+            dict[c][1] += 1  # if the prediction matches the label, add 1 to the number of correctly predicted datapoints
+    acc_lst = [elem[1] / elem[0] for elem in dict.values()]
+    print(dict)
+    
+    # plot the accuracy
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(classes, acc_lst, color='tab:orange')
+    ax.set_xlabel('Classes')
+    ax.set_ylabel('Accuracy')
+    plt.show()
+
+    # plot the accuracy and # of data points per class
+    data_tuples = list(zip(list(class_dict.values()), acc_lst))
+    df = pd.DataFrame(data_tuples, columns=['# of data points', 'Accuracy'])
+
+    fig = plt.figure(figsize=(12, 6)) # Create matplotlib figure
+    ax = fig.add_subplot(111) # Create matplotlib axes
+    width = width
+    _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0)
+    ax.set_xlabel('Classes')
     plt.show()
