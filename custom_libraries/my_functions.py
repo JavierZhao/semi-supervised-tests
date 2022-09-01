@@ -17,7 +17,7 @@ mpl.rc('xtick', labelsize=12)
 mpl.rc('ytick', labelsize=12)
 
 def calculate_tpr_fpr(y_real, y_pred):
-    '''
+    """
     Calculates the True Positive Rate (tpr) and the True Negative Rate (fpr) based on real and predicted observations
     
     Args:
@@ -27,7 +27,7 @@ def calculate_tpr_fpr(y_real, y_pred):
     Returns:
         tpr: The True Positive Rate of the classifier
         fpr: The False Positive Rate of the classifier
-    '''
+    """
     
     # Calculates the confusion matrix and recover each element
     cm = confusion_matrix(y_real, y_pred)
@@ -43,7 +43,7 @@ def calculate_tpr_fpr(y_real, y_pred):
     return tpr, fpr
     
 def get_all_roc_coordinates(y_real, y_proba):
-    '''
+    """
     Calculates all the ROC Curve coordinates (tpr and fpr) by considering each point as a threshold for the predicion of the class.
     
     Args:
@@ -53,7 +53,7 @@ def get_all_roc_coordinates(y_real, y_proba):
     Returns:
         tpr_list: The list of TPRs representing each threshold.
         fpr_list: The list of FPRs representing each threshold.
-    '''
+    """
     tpr_list = [0]
     fpr_list = [0]
     resolution = 50
@@ -69,14 +69,14 @@ def get_all_roc_coordinates(y_real, y_proba):
     return tpr_list, fpr_list
 
 def plot_roc_curve(tpr, fpr, scatter = True, ax = None):
-    '''
+    """
     Plots the ROC Curve by using the list of coordinates (tpr and fpr).
     
     Args:
         tpr: The list of TPRs representing each coordinate.
         fpr: The list of FPRs representing each coordinate.
         scatter: When True, the points used on the calculation will be plotted with the line (default = True).
-    '''
+    """
     if ax == None:
         plt.figure(figsize = (5, 5))
         ax = plt.axes()
@@ -90,17 +90,19 @@ def plot_roc_curve(tpr, fpr, scatter = True, ax = None):
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     
-def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(9, 9), ncol=2):
-    '''
+def plot_overlayed_roc_curve(classes, labels, predictions, class_labels, ax = None, figsize=(9, 9), ncol=2):
+    """
     Plots overlayed ROC curves and returns a list of AUC.
     
     Args:
-        classes: The classes used in classification
+        classes: The classes used in classification. Must match with the predictions and labels.
+                 i.e., if predictions consists of [..., 1, 3, 2, 1, 4, ...], then your classes cannot be ['photon', 'hadron', 'lepton']
         labels: The list of labels.
         predictions: The list of predicted classes. First dimension should match with the dimension of labels
+        class_labels: List of actual names of the classes (instead of 0, 1, ...)
     Return:
         roc_auc_ovr: Dictionary of AUC, one for each class
-    '''
+    """
     assert labels.size() == predictions[:, 0].size()
     if predictions.type() == 'torch.cuda.FloatTensor':
         predictions = predictions.cpu()
@@ -114,7 +116,7 @@ def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(9
         y_real = [1 if y == c else 0 for y in labels]
         y_proba = predictions[:, i]
         tpr, fpr = get_all_roc_coordinates(y_real, y_proba)
-        ax.plot(fpr, tpr, label = c)
+        ax.plot(fpr, tpr, label = class_labels[i])
         
         # Calculates the ROC AUC
         roc_auc_ovr[c] = roc_auc_score(y_real, y_proba.detach())
@@ -133,29 +135,31 @@ def plot_overlayed_roc_curve(classes, labels, predictions, ax = None, figsize=(9
     
     return roc_auc_ovr
 
-def plot_class_balance(classes, labels):
-    '''
+def plot_class_balance(classes, labels, class_labels):
+    """
     Plots a bar graph of # of data points for each class
     
     Args:
-        classes: list of classes. Accepted datatypes: numpy list, python list
-        labels: list of labels. Accepted datatypes: numpy list, python list
+        classes: The classes used in classification. Must match with the labels.
+                 i.e., if labels consists of [..., 1, 3, 2, 1, 4, ...], your classes cannot be ['photon', 'hadron', 'lepton']
+        labels: The list of labels.
+        class_labels: List of actual names of the classes (instead of 0, 1, ...)
     Return:
         d: dictionary of number of data points for each class
-    '''
+    """
     # initialize dictionary
     d = {i: 0 for i in classes}
 
     for data in labels:
         d[data] += 1
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.bar(list(d.keys()), list(d.values()))
+    ax.bar(class_labels, list(d.values()))
     ax.set_xlabel("Classes")
     ax.set_ylabel("Number of data points")
     plt.show()
     return d
 
-def plot_class_balance_and_accuracy(class_dict, labels, predictions, width=0.8):
+def plot_class_balance_and_accuracy(class_dict, labels, class_labels, predictions, width=0.8):
     '''
     Plots two bar graphs:
         a bar graph of accuracy for each class
@@ -164,6 +168,7 @@ def plot_class_balance_and_accuracy(class_dict, labels, predictions, width=0.8):
     Args:
         class_dict: dictionary of number of data points for each class. Can be obtained by calling plot_class_balance
         labels: list of labels. Accepted datatypes: numpy list, python list
+        class_labels: List of actual names of the classes (instead of 0, 1, ...)
         predictions: The list of predicted classes.
         width: width of the bars. Default = 0.8
     '''
@@ -180,7 +185,7 @@ def plot_class_balance_and_accuracy(class_dict, labels, predictions, width=0.8):
     
     # plot the accuracy
     fig, ax = plt.subplots(figsize=(12, 6))
-    ax.bar(classes, acc_lst, color='tab:orange')
+    ax.bar(class_labels, acc_lst, color='tab:orange')
     ax.set_xlabel('Classes')
     ax.set_ylabel('Accuracy')
     plt.show()
@@ -192,11 +197,11 @@ def plot_class_balance_and_accuracy(class_dict, labels, predictions, width=0.8):
     fig = plt.figure(figsize=(12, 6)) # Create matplotlib figure
     ax = fig.add_subplot(111) # Create matplotlib axes
     width = width
-    _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0)
+    _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0) #TODO: use class_labels instead
     ax.set_xlabel('Classes')
     plt.show()
 
-def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, figsize=(12, 6), width=0.8):
+def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels figsize=(12, 6), width=0.8):
     '''
     Plots two bar graphs:
         a bar graph of AUC for each class
@@ -205,13 +210,14 @@ def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, figsize=(12, 6), width=0
     Args:
         class_dict: dictionary of number of data points for each class. Can be obtained by calling plot_overlayed_roc_curve
         roc_auc_ovr: dictionary of AUC for each class.
+        class_labels: list of actual names of the classes (instead of 0, 1, ...)
         width: width of the bars. Default = 0.8
     '''
     classes = list(class_dict.keys())
     
     # plot the AUC for each class
     fig, ax = plt.subplots(figsize=figsize)
-    ax.bar(list(roc_auc_ovr.keys()), list(roc_auc_ovr.values()), color='b')
+    ax.bar(class_labels, list(roc_auc_ovr.values()), color='b')
     ax.set_xlabel("Classes")
     ax.set_ylabel("AUC")
     plt.show()
@@ -222,6 +228,6 @@ def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, figsize=(12, 6), width=0
     fig = plt.figure(figsize=(12, 6)) # Create matplotlib figure
     ax = fig.add_subplot(111) # Create matplotlib axes
     width = width
-    _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0)
+    _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0) #TODO: use class_labels instead
     ax.set_xlabel('classes')
     plt.show()
