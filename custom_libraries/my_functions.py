@@ -173,7 +173,7 @@ def plot_class_balance_and_accuracy(class_dict, labels, predictions, width=0.8):
     for i in range(predictions.size()[0]):
         c = labels[i] # the true class
         dict[c][0] += 1 # the first element is the number of data points
-        if c == pred[i]:
+        if c == predictions[i]:
             dict[c][1] += 1  # if the prediction matches the label, add 1 to the number of correctly predicted datapoints
     acc_lst = [elem[1] / elem[0] for elem in dict.values()]
     print(dict)
