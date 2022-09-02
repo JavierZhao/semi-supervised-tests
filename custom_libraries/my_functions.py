@@ -205,7 +205,7 @@ def plot_class_balance_and_accuracy(class_dict, labels, class_labels, prediction
     
     plt.show()
 
-def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels figsize=(12, 6), width=0.8):
+def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels, figsize=(12, 6), width=0.8):
     '''
     Plots two bar graphs:
         a bar graph of AUC for each class
