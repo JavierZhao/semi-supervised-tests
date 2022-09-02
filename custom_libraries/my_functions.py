@@ -199,6 +199,10 @@ def plot_class_balance_and_accuracy(class_dict, labels, class_labels, prediction
     width = width
     _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0) #TODO: use class_labels instead
     ax.set_xlabel('Classes')
+    
+    # to use class_labels for x-axis values
+    ax.set_xticklabels(class_labels)
+    
     plt.show()
 
 def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels figsize=(12, 6), width=0.8):
@@ -230,4 +234,5 @@ def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels figsize=(12
     width = width
     _ = df.plot(kind= 'bar' , secondary_y= '# of data points' ,width=width, ax=ax, rot= 0) #TODO: use class_labels instead
     ax.set_xlabel('classes')
+    ax.set_xticklabels(class_labels)
     plt.show()
