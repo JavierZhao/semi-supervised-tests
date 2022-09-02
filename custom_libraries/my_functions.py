@@ -116,15 +116,18 @@ def plot_overlayed_roc_curve(classes, labels, predictions, class_labels, ax = No
         y_real = [1 if y == c else 0 for y in labels]
         y_proba = predictions[:, i]
         tpr, fpr = get_all_roc_coordinates(y_real, y_proba)
-        ax.plot(fpr, tpr, label = class_labels[i])
         
         # Calculates the ROC AUC
         roc_auc_ovr[c] = roc_auc_score(y_real, y_proba.detach())
         print(roc_auc_ovr[c])
+        
+        ax.plot(fpr, tpr, label = f"{class_labels[i]}: AUC_ovr = {roc_auc_ovr[c]:.3f}")
 
+    # plot the 50/50 lines
     x = np.linspace(0, 1, 10)
     Y = x
-    plt.plot(x, Y, color='g')
+    plt.plot(x, Y, color='k', linestyle='dashed')
+    # set limits and labels on axes
     plt.xlim(-0.05, 1.05)
     plt.ylim(-0.05, 1.05)
     plt.xlabel("False Positive Rate")
