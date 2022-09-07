@@ -125,9 +125,14 @@ class JetNetGraph(Dataset):
             # append to data list
             data_list.append(data)
 
-            if i % self.n_events_merge == self.n_events_merge - 1:
-                data_list = sum(data_list, [])
-                torch.save(data_list, osp.join(self.processed_dir, f"qg_graph_{i}.pt"))
+            if i % self.n_jets_merge == self.n_jets_merge - 1:
+                new_data = Data()
+                for data in data_list:
+                    new_data = new_data + data
+#                 data_list = sum(data_list, Data())
+#                 data_list = sum(data_list, [])
+#                 torch.save(data_list, osp.join(self.processed_dir, f"qg_graph_{i}.pt"))
+                torch.save(new_data, osp.join(self.processed_dir, f"qg_graph_{i}.pt"))
 
         data, slices = self.collate(data_list)
         torch.save((data, slices), self.processed_paths[0])
