@@ -7,8 +7,6 @@ from scipy import stats
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score
 
-
-
 # To plot pretty figures
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -90,7 +88,7 @@ def plot_roc_curve(tpr, fpr, scatter = True, ax = None):
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     
-def plot_overlayed_roc_curve(classes, labels, predictions, class_labels, ax = None, figsize=(9, 9), ncol=2):
+def plot_overlayed_roc_curve(classes, labels, predictions, class_labels, odir, label = '', ax = None, figsize=(9, 9), ncol=2):
     """
     Plots overlayed ROC curves and returns a list of AUC.
     
@@ -103,7 +101,7 @@ def plot_overlayed_roc_curve(classes, labels, predictions, class_labels, ax = No
     Return:
         roc_auc_ovr: Dictionary of AUC, one for each class
     """
-    assert labels.size() == predictions[:, 0].size()
+#     assert labels.size() == predictions[:, 0].size()
     if predictions.type() == 'torch.cuda.FloatTensor':
         predictions = predictions.cpu()
         
@@ -132,13 +130,15 @@ def plot_overlayed_roc_curve(classes, labels, predictions, class_labels, ax = No
     plt.ylim(-0.05, 1.05)
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    ax.legend(loc='best', bbox_to_anchor=(0.5, -0.20), shadow=False, ncol=ncol)
+    ax.legend(loc='lower right', shadow=False, ncol=ncol)
     plt.title("ROC Curve OvR")
     plt.show()
+    fig.savefig("%s/roc_curve_%s.pdf" % (odir, label))
+    fig.savefig("%s/roc_curve_%s.png" % (odir, label))
     
     return roc_auc_ovr
 
-def plot_class_balance(classes, labels, class_labels):
+def plot_class_balance(classes, labels, class_labels, odir, label = ''):
     """
     Plots a bar graph of # of data points for each class
     
@@ -160,9 +160,11 @@ def plot_class_balance(classes, labels, class_labels):
     ax.set_xlabel("Classes")
     ax.set_ylabel("Number of data points")
     plt.show()
+    fig.savefig("%s/class_balance_%s.pdf" % (odir, label))
+    fig.savefig("%s/class_balance_%s.png" % (odir, label))
     return d
 
-def plot_class_balance_and_accuracy(class_dict, labels, class_labels, predictions, width=0.8):
+def plot_class_balance_and_accuracy(class_dict, labels, class_labels, predictions, odir, label = '', width=0.8):
     '''
     Plots two bar graphs:
         a bar graph of accuracy for each class
@@ -207,8 +209,10 @@ def plot_class_balance_and_accuracy(class_dict, labels, class_labels, prediction
     ax.set_xticklabels(class_labels)
     
     plt.show()
+    fig.savefig("%s/class_balance_and_accuracy_%s.pdf" % (odir, label))
+    fig.savefig("%s/class_balance_and_accuracy_%s.png" % (odir, label))
 
-def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels, figsize=(12, 6), width=0.8):
+def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels, odir, label = '', figsize=(12, 6), width=0.8):
     '''
     Plots two bar graphs:
         a bar graph of AUC for each class
@@ -228,6 +232,8 @@ def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels, figsize=(1
     ax.set_xlabel("Classes")
     ax.set_ylabel("AUC")
     plt.show()
+    fig.savefig("%s/AUC_%s.pdf" % (odir, label))
+    fig.savefig("%s/AUC_%s.png" % (odir, label))
     
     # plot the class balance AND AUC for each class
     data_tuples = list(zip(list(class_dict.values()), list(roc_auc_ovr.values())))
@@ -239,3 +245,5 @@ def plot_class_balance_and_AUC(class_dict, roc_auc_ovr, class_labels, figsize=(1
     ax.set_xlabel('classes')
     ax.set_xticklabels(class_labels)
     plt.show()
+    fig.savefig("%s/class_balance_and_AUC_%s.pdf" % (odir, label))
+    fig.savefig("%s/class_balance_and_AUC_%s.png" % (odir, label))
