@@ -1,5 +1,6 @@
 import math
 import logging
+import copy
 import os.path as osp
 
 import torch
@@ -146,20 +147,32 @@ def main():
     reset_params(model)
     num_epochs = 100
     train_loss_lst, val_acc_lst, train_acc_lst = [], [], []
-
+    best_val_acc = 0
     # Set up Focal loss
     gamma = 1
     floss = FocalLoss(gamma=gamma, reduction='mean')
 
-    # train/val loop
     for epoch in range(1, num_epochs+1):
         train_loss, train_acc = train(model, train_loader, optimizer, loss_fcn=floss)
         val_acc = test(model, val_loader)
         logging.info(f"Epoch: {epoch:03d}, Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Val Acc: {val_acc:.4f}")
+        is_best_epoch = (val_acc > best_val_acc)
+        if is_best_epoch:
+            # Save the model
+            best_val_acc = val_acc
+            best_model_state = copy.deepcopy(model.state_dict())
+            save_dir = "/ssl-jet-vol/semi-supervised-tests/trained_models/" + "_best_epoch_full.pt"
+            torch.save(best_model_state, save_dir)
         train_loss_lst.append(train_loss)
         train_acc_lst.append(train_acc)
         val_acc_lst.append(val_acc)
-    odir = "/ssl-jet-vol/semi-supervised-tests/Jupyter/plots"
+        logging.info(
+                    "Epoch #%d: Current validation metric: %.5f (best: %.5f)"
+                    % (epoch, val_acc, best_val_acc)
+                )
+        np.savetxt("/ssl-jet-vol/semi-supervised-tests/trained_models/" + "_training_losses.txt", train_loss_lst)
+
+    odir = "/ssl-jet-vol/semi-supervised-tests/plots"
     plot_acc(train_loss_lst, train_acc_lst, val_acc_lst, odir)
 
     out_lst, pred_lst, test_acc, test_mask_lst, supervision_mask_lst = test(model, val_loader, output_pred=True)
