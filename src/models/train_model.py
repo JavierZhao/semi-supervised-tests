@@ -7,13 +7,14 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.data import Batch
 from torch_geometric.loader import DataListLoader
-from torch_geometric.nn import MaskLabel, TransformerConv
+from torch_geometric.nn import TransformerConv
 from torch_geometric.utils import index_to_mask
 
 import sys
 sys.path.insert(0, '..')  #go up one directory
 from src.data.jetnet_graph import JetNetGraph
 from src.models.unimp_model import UniMP
+from src.models.mask_feature import MaskFeature
 from custom_libraries.my_functions import *
 from focal_loss import FocalLoss
 
@@ -42,7 +43,7 @@ def train(model, loader, optimizer, label_rate=0.85, loss_fcn=F.cross_entropy):
         optimizer.zero_grad()
 
         train_mask = torch.ones_like(data.x[:, 0], dtype=torch.bool)
-        propagation_mask = MaskLabel.ratio_mask(train_mask, ratio=label_rate)
+        propagation_mask = MaskFeature.ratio_mask(train_mask, ratio=label_rate)
         supervision_mask = train_mask ^ propagation_mask
 
         data = data.cuda()
@@ -70,7 +71,7 @@ def test(model, loader, label_rate=0.85, output_pred=False):
     for data in loader:
         data = data.cuda()
         test_mask = torch.ones_like(data.x[:, 0], dtype=torch.bool)
-        propagation_mask = MaskLabel.ratio_mask(test_mask, ratio=label_rate)
+        propagation_mask = MaskFeature.ratio_mask(test_mask, ratio=label_rate, fix_seed=True)
         supervision_mask = test_mask ^ propagation_mask
 
         out = model(data.x, data.y, data.edge_index, propagation_mask)
