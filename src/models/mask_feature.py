@@ -12,7 +12,7 @@ class MaskFeature(torch.nn.Module):
         return out
 
     @staticmethod
-    def ratio_mask(mask: Tensor, ratio: float):
+    def ratio_mask(mask: Tensor, ratio: float, fix_seed=False):
         r"""Modifies :obj:`mask` by setting :obj:`ratio` of :obj:`True`
         entries to :obj:`False`. Does not operate in-place.
 
@@ -20,6 +20,8 @@ class MaskFeature(torch.nn.Module):
             mask (torch.Tensor): The mask to re-mask.
             ratio (float): The ratio of entries to keep.
         """
+        if fix_seed:
+            torch.manual_seed(0)
         n = int(mask.sum())
         out = mask.clone()
         out[mask] = torch.rand(n, device=mask.device) < ratio
