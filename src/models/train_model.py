@@ -120,8 +120,8 @@ def plot_acc(train_loss_lst, train_acc_lst, val_acc_lst, odir):
 def main():
     train_root = osp.join(osp.dirname(osp.realpath(__file__)), "..", "..", "data", "train")
     val_root = osp.join(osp.dirname(osp.realpath(__file__)), "..", "..", "data", "val")
-    train_dataset = JetNetGraph(train_root, max_jets=3_000, file_start=0, file_stop=1)
-    val_dataset = JetNetGraph(val_root, max_jets=3_000, file_start=1, file_stop=2)
+    train_dataset = JetNetGraph(train_root, max_jets=10_000, file_start=0, file_stop=1)
+    val_dataset = JetNetGraph(val_root, max_jets=10_000, file_start=1, file_stop=2)
     batch_size = 1  # 1k jets per batch
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
