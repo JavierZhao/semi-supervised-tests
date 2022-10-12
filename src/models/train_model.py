@@ -23,7 +23,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # To plot pretty figures
-%matplotlib inline
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 mpl.rc('axes', labelsize=14)
